@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  api:
+    image: api
+    ports:
+      - 8000:8000
+    environment:
+      - DATABASE_HOST=$DATABASE_HOST
+      - DATABASE_USER=$DATABASE_USER
+      - DATABASE_PASSWORD=$DATABASE_PASSWORD
+      - DATABASE_NAME=$DATABASE_NAME
+      - API_DOCS_ENABLED=$API_DOCS_ENABLED
+      - BACKEND_CORS_ORIGINS=$BACKEND_CORS_ORIGINS
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 4
+  postgres:
+    image: postgres:14.2
+    environment:
+      - POSTGRES_USER=$DATABASE_USER
+      - POSTGRES_PASSWORD=$DATABASE_PASSWORD
+      - POSTGRES_DB=$DATABASE_NAME
+      - TZ=$TIMEZONE
+    volumes:
+      - postgres-persistent-data:/var/lib/postgresql/data/
+    deploy:
+      placement:
+        constraints:
+          - node.labels.postgres-data-node == true
+  pgadmin:
+    image: dpage/pgadmin4:6.5
+    ports:
+      - 3333:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=$PGADMIN_ACCOUNT_EMAIL
+      - PGADMIN_DEFAULT_PASSWORD=$PGADMIN_ACCOUNT_PASSWORD
+    depends_on:
+      - postgres
+volumes:
+  postgres-persistent-data:
